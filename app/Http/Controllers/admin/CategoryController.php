@@ -7,7 +7,7 @@ use App\Models\TempImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
-use Intervention\Image\Facades\Image;
+// use Intervention\Image\Facades\Image;
 use App\Models\Category;
 class CategoryController extends Controller
 {
@@ -25,68 +25,58 @@ class CategoryController extends Controller
         
      }
      public function store(Request $request){
-        // dd($request->all());
-        // Validate the incoming request
         $validator = Validator::make($request->all(),[
             'name' => 'required',
             'slug' => 'required|unique:categories',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-    
         if ($validator->passes()){
-    
-            // Create a new category instance
+
             $category = new Category();
             $category->name = $request->name;
             $category->slug = $request->slug;
             $category->status = $request->status;
             $category->save();
 
-            // Handle the image upload
-            if($request->hasFile('image')){
-                $image = $request->file('image');
-                $imageName = $category->id . '.' . $image->getClientOriginalExtension();
-                $destinationPath = public_path('/uploads/category/thumb');
-                $image->move($destinationPath, $imageName);
+            // save image here 
+            if(!empty($request->image_id)){
+                $tempImage = TempImage::find($request->image_id);
+                $extArray = explode('.',$tempImage->name);
+                $ext = last($extArray);
 
-                // Save the image name in the database
-                $category->image = $imageName;
+                $newImageName = $category->id.'.'.$ext; 
+                // sPath = source path , dPath = destination path 
+                $sPath = public_path().'/temp/'.$tempImage->name; 
+                $dPath = public_path().'/uploads/category/thumb/'.$newImageName; 
+                File::copy($sPath,$dPath);
+
+            //     generate image thumbnail 
+            //     // $thumbPath = public_path().'/uploads/category/thumb/'.$newImageName; 
+            //     $img = Image::make($sPath);
+            //     $img->resize(450, 600);
+            //     $img->fit(450, 600 ,function($constraint){
+            //     $constraint->upsize();
+            //     });
+            //     $img->save($dPath);
+                
+                $category->image = $newImageName;
                 $category->save();
+                
             }
-            
 
-            // if ($request->hasFile('image')) {
-            //     $image = $request->file('image');
-            //     $imageName = $category->id . '.' . $image->getClientOriginalExtension();
-            //     $destinationPath = public_path('/uploads/category/thumb');
-    
-            //     // Resize and fit the image using Intervention
-            //     $resizedImage = Image::make($image->getRealPath());
-            //     $resizedImage->resize(300, 300, function ($constraint) {
-            //         $constraint->aspectRatio();
-            //     })->fit(300, 300)->save($destinationPath . '/' . $imageName);
-    
-            //     // Save the image name in the database
-            //     $category->image = $imageName;
-            //     $category->save();
-            // }
-            // Flash a success message
             $request->session()->flash('success','Category added successfully');
-    
+
             return response()->json([
                 'status' => true,
                 'message' => 'Category added successfully'
             ]);
-    
+
         } else{
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
             ]);
         }
-    }
-    
-    
+     }
      public function edit($categoryId, Request $request){
         $category = Category::find($categoryId);
         if (empty($category)){

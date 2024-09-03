@@ -42,7 +42,7 @@
                         <div class="mb-3">
                             <input type="hidden" id="image_id" name="image_id" value="">
                            <label>Image</label>
-                            <div id="image" class="dropzone dz-clickable">
+                            <div id="image"class="dropzone dz-clickable">
                                 <div class="dz-message needsclick">
                                     <br>Drop files here or click to upload. <br> <br>
                                 </div>
@@ -77,71 +77,60 @@
 @section('customJs')
 
 <script>
-   $("#categoryForm").submit(function(event) {
-    event.preventDefault();
-    var element = $(this);
-    $("button[type=submit]").prop('disabled', true);
+    $("#categoryForm").submit( function(event){
+        event.preventDefault();
+        var element = $(this);
+        $("button[type=submit]").prop('disabled',true);
+        $.ajax({
+            url: '{{ route("categories.store") }}',
+            type: 'post',
+            data: element.serializeArray(),
+            dataType: 'json',
+            success: function(response){
+            $("button[type=submit]").prop('disabled',false);
 
-    // Create a FormData object to handle the file upload
-    var formData = new FormData(element[0]);
 
-    // Check if Dropzone is attached to the form and add files
-    if (Dropzone.instances.length > 0) {
-        var dropzone = Dropzone.instances[0];
-        dropzone.files.forEach(function(file) {
-            formData.append('image', file);
-        });
-    }
+                if(response["status"] == true){
 
-    $.ajax({
-        url: '{{ route("categories.store") }}',
-        type: 'post',
-        data: formData,
-        contentType: false,  // Prevent jQuery from overriding the Content-Type header
-        processData: false,  // Prevent jQuery from automatically transforming the data into a query string
-        dataType: 'json',
-        success: function(response) {
-            $("button[type=submit]").prop('disabled', false);
+                    window.location.href='{{route('categories.index')}}';
 
-            if (response["status"] == true) {
-                window.location.href = '{{ route('categories.index') }}';
-
-                $("#name").removeClass('is-invalid')
-                    .siblings('p')
-                    .removeClass('invalid-feedback').html("");
-                $("#slug").removeClass('is-invalid')
-                    .siblings('p')
-                    .removeClass('invalid-feedback').html("");
-
-            } else {
-                var errors = response['errors'];
-                if (errors['name']) {
-                    $("#name").addClass('is-invalid')
-                        .siblings('p')
-                        .addClass('invalid-feedback').html(errors['name']);
-                } else {
                     $("#name").removeClass('is-invalid')
-                        .siblings('p')
-                        .removeClass('invalid-feedback').html("");
+                    .siblings('p')
+                    .removeClass('invalid-feedback').html("");
+                    $("#slug").removeClass('is-invalid')
+                    .siblings('p')
+                    .removeClass('invalid-feedback').html("");
+
+                } else{
+                var errors = response['errors'];
+                if(errors['name']){
+                    $("#name").addClass('is-invalid')
+                    .siblings('p')
+                    .addClass('invalid-feedback').html( errors['name']);
+                } else{
+                    $("#name").removeClass('is-invalid')
+                    .siblings('p')
+                    .removeClass('invalid-feedback').html("");
                 }
 
-                if (errors['slug']) {
+
+
+                if(errors['slug']){
                     $("#slug").addClass('is-invalid')
-                        .siblings('p')
-                        .addClass('invalid-feedback').html(errors['slug']);
-                } else {
+                    .siblings('p')
+                    .addClass('invalid-feedback').html( errors['slug']);
+                } else{
                     $("#slug").removeClass('is-invalid')
-                        .siblings('p')
-                        .removeClass('invalid-feedback').html("");
+                    .siblings('p')
+                    .removeClass('invalid-feedback').html("");
                 }
             }
 
-        },
-        error: function(jqXHR, exception) {
-            console.log("something went wrong");
-        }
-    });
-});
+            }, error: function(jqXHR, exception){
+                console.log("somethig went wrong");
+            }
+        })
+ });
  $("#name").change(function(){
     element = $(this);
     $("button[type=submit]").prop('disabled',true);
