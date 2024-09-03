@@ -7,7 +7,7 @@ use App\Models\TempImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
-// use Intervention\Image\Facades\Image;
+use Intervention\Image\Facades\Image;
 use App\Models\Category;
 class CategoryController extends Controller
 {
@@ -43,17 +43,33 @@ class CategoryController extends Controller
             $category->save();
 
             // Handle the image upload
-            if($request->hasFile('image')){
+            // if($request->hasFile('image')){
+            //     $image = $request->file('image');
+            //     $imageName = $category->id . '.' . $image->getClientOriginalExtension();
+            //     $destinationPath = public_path('/uploads/category/thumb');
+            //     $image->move($destinationPath, $imageName);
+
+            //     // Save the image name in the database
+            //     $category->image = $imageName;
+            //     $category->save();
+            // }
+            
+
+            if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = $category->id . '.' . $image->getClientOriginalExtension();
                 $destinationPath = public_path('/uploads/category/thumb');
-                $image->move($destinationPath, $imageName);
-
+    
+                // Resize and fit the image using Intervention
+                $resizedImage = Image::make($image->getRealPath());
+                $resizedImage->resize(300, 300, function ($constraint) {
+                    $constraint->aspectRatio();
+                })->fit(300, 300)->save($destinationPath . '/' . $imageName);
+    
                 // Save the image name in the database
                 $category->image = $imageName;
                 $category->save();
             }
-            
             // Flash a success message
             $request->session()->flash('success','Category added successfully');
     
