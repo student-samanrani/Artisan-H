@@ -43,33 +43,33 @@ class CategoryController extends Controller
             $category->save();
 
             // Handle the image upload
-            // if($request->hasFile('image')){
-            //     $image = $request->file('image');
-            //     $imageName = $category->id . '.' . $image->getClientOriginalExtension();
-            //     $destinationPath = public_path('/uploads/category/thumb');
-            //     $image->move($destinationPath, $imageName);
-
-            //     // Save the image name in the database
-            //     $category->image = $imageName;
-            //     $category->save();
-            // }
-            
-
-            if ($request->hasFile('image')) {
+            if($request->hasFile('image')){
                 $image = $request->file('image');
                 $imageName = $category->id . '.' . $image->getClientOriginalExtension();
                 $destinationPath = public_path('/uploads/category/thumb');
-    
-                // Resize and fit the image using Intervention
-                $resizedImage = Image::make($image->getRealPath());
-                $resizedImage->resize(300, 300, function ($constraint) {
-                    $constraint->aspectRatio();
-                })->fit(300, 300)->save($destinationPath . '/' . $imageName);
-    
+                $image->move($destinationPath, $imageName);
+
                 // Save the image name in the database
                 $category->image = $imageName;
                 $category->save();
             }
+            
+
+            // if ($request->hasFile('image')) {
+            //     $image = $request->file('image');
+            //     $imageName = $category->id . '.' . $image->getClientOriginalExtension();
+            //     $destinationPath = public_path('/uploads/category/thumb');
+    
+            //     // Resize and fit the image using Intervention
+            //     $resizedImage = Image::make($image->getRealPath());
+            //     $resizedImage->resize(300, 300, function ($constraint) {
+            //         $constraint->aspectRatio();
+            //     })->fit(300, 300)->save($destinationPath . '/' . $imageName);
+    
+            //     // Save the image name in the database
+            //     $category->image = $imageName;
+            //     $category->save();
+            // }
             // Flash a success message
             $request->session()->flash('success','Category added successfully');
     
