@@ -7,7 +7,8 @@ use App\Models\TempImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
-// use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 use App\Models\Category;
 class CategoryController extends Controller
 {
@@ -39,6 +40,7 @@ class CategoryController extends Controller
 
             // save image here 
             if(!empty($request->image_id)){
+                $manager = new ImageManager(new Driver());
                 $tempImage = TempImage::find($request->image_id);
                 $extArray = explode('.',$tempImage->name);
                 $ext = last($extArray);
@@ -46,9 +48,14 @@ class CategoryController extends Controller
                 $newImageName = $category->id.'.'.$ext; 
                 // sPath = source path , dPath = destination path 
                 $sPath = public_path().'/temp/'.$tempImage->name; 
-                $dPath = public_path().'/uploads/category/thumb/'.$newImageName; 
+                $dPath = public_path().'/uploads/category/'.$newImageName; 
                 File::copy($sPath,$dPath);
 
+                $thumbPath = public_path().'/uploads/category/thumb/'.$newImageName;
+                $img = $manager->read($sPath);
+                $img = $img->resize(450, 600);
+                $img->save($thumbPath);
+                
             //     generate image thumbnail 
             //     // $thumbPath = public_path().'/uploads/category/thumb/'.$newImageName; 
             //     $img = Image::make($sPath);
@@ -112,6 +119,7 @@ class CategoryController extends Controller
 
             // save image here 
             if(!empty($request->image_id)){
+                $manager = new ImageManager(new Driver());
                 $tempImage = TempImage::find($request->image_id);
                 $extArray = explode('.',$tempImage->name);
                 $ext = last($extArray);
@@ -119,10 +127,16 @@ class CategoryController extends Controller
                 $newImageName = $category->id.'-'.time().'.'.$ext; 
                 // sPath = source path , dPath = destination path 
                 $sPath = public_path().'/temp/'.$tempImage->name; 
-                $dPath = public_path().'/uploads/category/thumb/'.$newImageName; 
+                $dPath = public_path().'/uploads/category/'.$newImageName; 
                 File::copy($sPath,$dPath);
 
                 // generate image thumbnail 
+
+                $thumbPath = public_path().'/uploads/category/thumb/'.$newImageName;
+                $img = $manager->read($sPath);
+                $img = $img->resize(450, 600);
+                $img->save($thumbPath);
+
                 // $dPath = public_path().'/uploads/category/thumb/'.$newImageName; 
                 // $img = Image::make($sPath);
                 // $img->resize(450, 600);

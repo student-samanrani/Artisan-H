@@ -64,10 +64,13 @@ Route::group(['prefix' => 'admin'], function(){
         Route::put('/brands/{brand}',[BrandController::class,'update'])->name('brands.update');
         Route::delete('/brands/{brand}',[BrandController::class,'destroy'])->name('brands.delete');    
 
-        // sub category routes
-
+        // product routes
+        Route::get('/products',[ProductController::class,'index'])->name('products.index');
         Route::get('/products/create',[ProductController::class,'create'])->name('products.create');
         Route::post('/products',[ProductController::class,'store'])->name('products.store');
+        Route::get('/products/{product}/edit',[ProductController::class,'edit'])->name('products.edit');
+        Route::put('/products/{product}',[ProductController::class,'update'])->name('products.update');
+
 
         Route::get('/product-subcategories',[ProductSubCategoryController::class,'index'])->name('product-subcategories.index');
 

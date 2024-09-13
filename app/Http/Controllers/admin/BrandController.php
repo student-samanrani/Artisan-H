@@ -36,6 +36,7 @@ class BrandController extends Controller
             $brand->status = $request->status;
             $brand->save();
 
+            $request->session()->flash('success','Brand added successfully');
             return response()->json([
                 'status' => true,
                 'message' => 'Brand added successfully.'
@@ -82,6 +83,7 @@ class BrandController extends Controller
             $brand->status = $request->status;
             $brand->save();
 
+            $request->session()->flash('success','Brand Updated successfully');
             return response()->json([
                 'status' => true,
                 'message' => 'Brand updated successfully.'
