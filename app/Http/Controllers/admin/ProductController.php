@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\SubCategory;
 use App\Models\TempImage;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Intervention\Image\ImageManager;
@@ -89,7 +90,7 @@ class ProductController extends Controller
                     $productImage->image = 'NULL';
                     $productImage->save();
                     
-                    $imageName = $product->id.'-'. $productImage->id.'-'.time().'.'.$ext;
+                    $imageName = $product->id.'-'.$productImage->id.'-'.time().'.'.$ext;
                     $productImage->image  = $imageName;
                     $productImage->save();
 
@@ -103,7 +104,6 @@ class ProductController extends Controller
                     $img->save($destPath); 
 
                     //small image
-                    $sourcePath = public_path().'/temp/'.$tempImageInfo->name;
                     $destPath = public_path().'/uploads/product/small/'.$imageName;
                     $img = $manager->read($sourcePath);
                     $img = $img->resize(300, 300);
@@ -129,15 +129,24 @@ class ProductController extends Controller
 
     public function edit($id, Request $request){
         $product = Product::find($id);
+
+        if(empty($product)){
+            return redirect()->route('products.index')->with('error','Product Not Found');
+        }
+
+        // Fetch Product Images
+        $productImages = ProductImage::where('product_id',$product->id)->get();
         $subCategories = SubCategory::where('category_id',$product->category_id)->get();
 
         $data = [];
-        $data['product'] = $product;
-        $data['subCategories'] = $subCategories;
+      
         $categories = Category::orderBy('name','ASC')->get();
         $brands = Brand::orderBy('name','ASC')->get();
         $data['categories'] = $categories; 
         $data['brands'] = $brands; 
+        $data['product'] = $product;
+        $data['subCategories'] = $subCategories;
+        $data['productImages'] = $productImages;
         return view('admin.products.edit',$data);
         
      }
@@ -177,9 +186,7 @@ class ProductController extends Controller
             $product->is_featured = $request->is_featured;
             $product->save();
 
-
             $request->session()->flash('success','Product updated successfully');
-
 
             return response()->json([
                 'status' => true,
@@ -192,5 +199,36 @@ class ProductController extends Controller
                     'errors' => $validator->errors()
                 ]);
         }
+     }
+     public function destroy($id, Request $request){
+        $product = Product::find($id);
+
+        if (empty($product)){
+
+        $request->session()->flash('error','Product not found');
+
+            return response()->json([
+                'status' => false,
+                'notFound' => true
+            ]);
+        }
+
+        $productImages = ProductImage::where('product_id',$id)->get();
+
+        if (!empty($productImages)){
+            foreach ($productImages as $productImage) {
+                File::delete(public_path('/uploads/product/large/'.$productImage->image));
+                File::delete(public_path('/uploads/product/small/'.$productImage->image));
+            }
+            ProductImage::where('product_id',$id)->delete();
+        }
+        $product->delete();
+
+        $request->session()->flash('success','Product deleted successfully');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Product deleted successfully '
+        ]);
      }
 }

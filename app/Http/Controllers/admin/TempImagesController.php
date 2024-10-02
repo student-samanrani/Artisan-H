@@ -11,8 +11,8 @@ use Intervention\Image\Drivers\Gd\Driver;
 class TempImagesController extends Controller
 {
     public function create(Request $request){
-        $image = $request->image;
         if (!empty($image)){
+            $image = $request->image;
             $manager = new ImageManager(new Driver());
             $ext = $image->getClientOriginalExtension();
             $newName = time().'.'.$ext; 
